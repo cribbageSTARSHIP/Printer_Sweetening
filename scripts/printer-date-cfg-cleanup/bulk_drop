@@ -1,0 +1,59 @@
+I needed a way to clean up all of the printer-*.cfg that mainsail backs up. The solution was to place a script inside of the following dir:
+
+~/printer_data/scripts
+
+the script is called move_backups.sh. Here is the script:
+
+###SCRIPT START
+
+#!/bin/bash
+
+# --- Configuration ---
+# This is the path to your Klipper configuration directory.
+# Make sure this matches your setup (e.g., '~/printer_data/config').
+CONFIG_DIR=~/printer_data/config
+
+# This is the name of the subdirectory where backups will be stored.
+# --- MODIFIED LINE ---
+BACKUP_DIR="$CONFIG_DIR/printer_cfg-old" 
+
+# The number of recent backup files you want to keep in the main directory.
+# --- NEW ---
+KEEP_COUNT=3
+# --- End of Configuration ---
+
+
+# Exit if the config directory doesn't exist
+if [ ! -d "$CONFIG_DIR" ]; then
+  echo "Error: Config directory not found at $CONFIG_DIR"
+  exit 1
+fi
+
+# Create the backup directory if it doesn't already exist
+echo "Checking for backup directory at $BACKUP_DIR..."
+mkdir -p "$BACKUP_DIR"
+echo "Directory check complete."
+
+# --- MODIFIED LOGIC ---
+# List all printer.cfg backups, sort by time (newest first), skip the newest ones,
+# and then move the rest to the backup directory.
+echo "Keeping the $KEEP_COUNT newest backups and moving the rest..."
+ls -t "$CONFIG_DIR"/printer-*.cfg 2>/dev/null | tail -n +$(($KEEP_COUNT + 1)) | xargs -I {} mv {} "$BACKUP_DIR"
+
+echo "Backup move complete."
+
+### SCRIPT END
+
+I then created the    in "~/printer_data/config" called "printer_cfg-old".
+
+Now we'll change the cron schedule from a daily timer to run once every time the Raspberry Pi starts up.
+
+crontab -e
+
+add the following to crontab: @reboot /bin/bash /home/pi/move_backups.sh > /dev/null 2>&1
+
+Backup Location: Your old configurations will now be moved to ~/printer_data/config/printer_cfg-old/.
+
+Backup Logic: The script will always leave your 3 most recent printer-*.cfg backup files in the main config folder for easy access and move all older ones.
+
+Schedule: The script will run automatically a few moments after your Raspberry Pi boots up.

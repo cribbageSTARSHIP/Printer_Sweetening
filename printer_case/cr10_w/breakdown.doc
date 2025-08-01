@@ -1,0 +1,8 @@
+Printer case components:
+Power:
+  Printer:
+    - OEM 24V 400W PSU (have)
+    - Controlled by 25amp solid state relay
+    - by-pass switch 10amp+ 
+  Raspberry_Pi_4_8gb:
+    - Recycled Xbox 360 PSU (MS P/N X808155-005) DC 12V 16.5A
